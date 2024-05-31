@@ -1,0 +1,5 @@
+{
+  "name": "akbi",
+  "private": true,
+  "workspaces": ["frontend", "backend"]
+}
