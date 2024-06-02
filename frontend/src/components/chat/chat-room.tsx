@@ -5,10 +5,17 @@ import {
     XMarkIcon,
 } from "@heroicons/react/16/solid";
 import { motion } from "framer-motion";
-import { ChatRoomCard } from "./chat-room-card";
+import { ChatRoomCard, ChatRoomCardProps } from "./chat-room-card";
 import { cn } from "../../utils/cn";
 
-export const ChatRoom = ({ id, name, messages, onClose }) => {
+export type ChatRoomProps = {
+    id: number;
+    name: string;
+    messages: ChatRoomCardProps[];
+    onClose: (id: number) => void;
+};
+
+export const ChatRoom = ({ id, name, messages, onClose }: ChatRoomProps) => {
     const listRef = useRef(null);
 
     const [isShow, setIsShow] = useState(false);
@@ -28,7 +35,7 @@ export const ChatRoom = ({ id, name, messages, onClose }) => {
                 },
             }}
         >
-            <button
+            <div
                 className={cn(
                     "flex w-full items-center justify-between px-4 py-2 rounded-t-lg hover:cursor-pointer",
                     isShow
@@ -62,7 +69,7 @@ export const ChatRoom = ({ id, name, messages, onClose }) => {
                         />
                     </button>
                 </div>
-            </button>
+            </div>
             <div
                 className="overflow-y-scroll bg-gray-100 border-l border-r h-96"
                 ref={listRef}

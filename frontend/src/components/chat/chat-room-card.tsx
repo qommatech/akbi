@@ -1,9 +1,10 @@
 import { cn } from "../../utils/cn";
 
-type ChatRoomCardProps = {
+export type ChatRoomCardProps = {
     type: 1 | 2;
+    id: number;
     content: string;
-    name: string;
+    name?: string;
 };
 
 export const ChatRoomCard = ({ type, content, name }: ChatRoomCardProps) => {

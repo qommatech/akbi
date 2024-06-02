@@ -1,8 +1,11 @@
 import { useState } from "react";
 import { ChatList } from "./chat-list";
 import { ChatRoom } from "./chat-room";
+import { useTimeout } from "usehooks-ts";
 
 export const Chats = () => {
+    const [isLoading, setIsLoading] = useState(true);
+
     const [chats, setChats] = useState([
         {
             id: 1,
@@ -47,18 +50,22 @@ export const Chats = () => {
         setChats((prev) => prev.filter((chat) => chat.id != id));
     };
 
+    useTimeout(() => setIsLoading(false), 2000);
+
     return (
-        <div className="fixed bottom-0 z-10 w-screen mx-auto pointer-events-none">
-            <div className="flex flex-row-reverse items-end w-3/4 mx-auto">
-                <ChatList />
-                {chats.map((chat, i) => (
-                    <ChatRoom
-                        key={`chat-room-${i}`}
-                        {...chat}
-                        onClose={handleCloseChatRoom}
-                    />
-                ))}
+        !isLoading && (
+            <div className="fixed bottom-0 z-10 w-screen mx-auto pointer-events-none">
+                <div className="flex flex-row-reverse items-end w-3/4 mx-auto">
+                    <ChatList />
+                    {chats.map((chat, i) => (
+                        <ChatRoom
+                            key={`chat-room-${i}`}
+                            {...chat}
+                            onClose={handleCloseChatRoom}
+                        />
+                    ))}
+                </div>
             </div>
-        </div>
+        )
     );
 };
