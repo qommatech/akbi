@@ -16,7 +16,7 @@ export const ButtonPrimary = ({
     return (
         <button
             className="relative px-4 py-2 text-white bg-blue-500 rounded-full hover:bg-blue-600"
-            onClick={(e) => {
+            onClick={() => {
                 // e.preventDefault();
                 onClick!();
             }}
