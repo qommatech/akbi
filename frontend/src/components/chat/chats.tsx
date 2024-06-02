@@ -3,7 +3,13 @@ import { ChatList } from "./chat-list";
 import { ChatRoom } from "./chat-room";
 import { useTimeout } from "usehooks-ts";
 
-export const Chats = () => {
+export const Chats = () => (
+    <>
+        <ChatsDesktop />
+    </>
+);
+
+const ChatsDesktop = () => {
     const [isLoading, setIsLoading] = useState(true);
 
     const [chats, setChats] = useState([
@@ -54,7 +60,7 @@ export const Chats = () => {
 
     return (
         !isLoading && (
-            <div className="fixed bottom-0 z-10 w-screen mx-auto pointer-events-none">
+            <div className="fixed bottom-0 z-10 hidden w-screen mx-auto pointer-events-none lg:block">
                 <div className="flex flex-row-reverse items-end w-3/4 mx-auto">
                     <ChatList />
                     {chats.map((chat, i) => (

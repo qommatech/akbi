@@ -6,7 +6,7 @@ import {
 export const Navbar = () => {
     return (
         <div className="w-screen bg-white border-b border-gray-200">
-            <div className="flex items-center justify-between w-3/4 py-4 mx-auto">
+            <div className="container flex items-center justify-between px-4 py-4 mx-auto lg:w-3/4 md:px-0">
                 <div>
                     <h1 className="text-xl font-semibold text-blue-500">
                         AKBI.

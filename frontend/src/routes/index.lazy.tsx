@@ -20,12 +20,18 @@ function Index() {
         <>
             <Navbar />
             <div className="flex justify-center w-screen py-4">
-                <div className="grid w-3/4 grid-cols-4 gap-x-4">
-                    <div>{isLoading ? <SidebarLoader /> : <Sidebar />}</div>
-                    <div className="col-span-2">
+                <div className="container grid w-full grid-cols-1 mx-auto md:grid-cols-3 lg:grid-cols-4 lg:w-3/4 gap-x-4">
+                    <div className="flex-col hidden md:flex gap-y-4">
+                        {isLoading ? <SidebarLoader /> : <Sidebar />}
+
+                        <div className="block lg:hidden">
+                            <Recommendations />
+                        </div>
+                    </div>
+                    <div className="col-span-2 px-2 md:px-0">
                         <Posts />
                     </div>
-                    <div className="">
+                    <div className="hidden lg:block">
                         <Recommendations />
                     </div>
                 </div>
