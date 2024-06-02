@@ -33,6 +33,7 @@ export const AuthService = {
       // Generate JWT token
       const token = await sign(
         {
+          id: newUser.id,
           username: newUser.username,
           name: newUser.name,
           email: newUser.email,
@@ -55,7 +56,13 @@ export const AuthService = {
     );
     if (user !== null) {
       return await sign(
-        { username: user.username, name: user.name, email: user.email },
+        {
+          id: user.id,
+          username: user.username,
+          name: user.name,
+          email: user.email,
+          exp: Math.floor(Date.now() / 1000) + 60 * 60,
+        },
         secretKey as string
       );
     }
