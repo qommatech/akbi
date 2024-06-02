@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    * {
+        @apply font-jakarta;
+    }
+
+    #root {
+        @apply bg-gray-100 min-h-screen;
+    }
+}
