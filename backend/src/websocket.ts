@@ -1,4 +1,5 @@
 import { saveMessage } from "./utils/saveMessage";
+import { fetchMessagesBetweenUsers } from "./utils/fetchMessagesBetweenUsers";
 import { decode } from "hono/jwt";
 import type { ServerWebSocket } from "bun";
 
@@ -10,16 +11,29 @@ export const websocketHandler = () => {
       const token = req.headers.get("token"); // Implement this function based on your logic
       const { payload } = decode(token);
       const userId = payload.id;
-      const success = server.upgrade(req, { data: { userId } });
+      const otherUserId = parseInt(req.headers.get("otherUserId"));
+      const success = server.upgrade(req, { data: { userId, otherUserId } });
       if (success) return undefined;
 
       return new Response("WebSocket upgrade error", { status: 400 });
     },
     websocket: {
-      open(ws: any) {
+      async open(ws: any) {
         console.log(`User ${ws.data.userId} connected`);
         ws.send("Websocket connection established");
         connectedClients.set(ws.data.userId, ws); // Add the client to the map
+
+        try {
+          // Fetch and send previous messages between users when a new connection is established
+          const previousMessages = await fetchMessagesBetweenUsers(
+            ws.data.userId,
+            ws.data.otherUserId
+          ); // Implement this function based on your database schema
+          ws.send(JSON.stringify(previousMessages));
+        } catch (error) {
+          console.error("Error fetching previous messages:", error);
+          ws.send("Error fetching previous messages");
+        }
       },
       async message(ws: any, message: any) {
         console.log("Received message:", message);

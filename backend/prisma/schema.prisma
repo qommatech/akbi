@@ -20,8 +20,19 @@ model User {
   username  String   @unique
   password  String
 
+  posts Post[]
+  reactions           PostReaction[]
+  stories   Story[]
+  viewedStories StoryViewer[]
+
+  userFriends       Friend[] @relation(name: "userFriendships")
+  friendUserFriends Friend[] @relation(name: "friendFriendships")
+
   sendedMesssage Message[]  @relation("SenderUser")
-  receivedMessage   Message?   @relation("ReceiverUser")
+  receivedMessage   Message[]   @relation("ReceiverUser")
+
+  sentFriendRequests    FriendRequest[] @relation("SentFriendRequests")
+  receivedFriendRequests FriendRequest[] @relation("ReceivedFriendRequests")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
@@ -29,11 +40,90 @@ model User {
 
 model Message {
   id        Int      @id @default(autoincrement())
-  senderId  Int? @unique
-  receiverId Int? @unique
+  senderId  Int? 
+  receiverId Int? 
   content   String?
   createdAt DateTime @default(now())
 
   sender     User?     @relation("SenderUser",fields: [senderId], references: [id])
   receiver   User?     @relation("ReceiverUser",fields: [receiverId], references: [id])
+}
+
+model FriendRequest {
+  id            Int       @id @default(autoincrement())
+  senderId      Int
+  receiverId    Int
+  status        FriendRequestStatus @default(PENDING)
+  createdAt     DateTime  @default(now())
+
+  sender        User      @relation("SentFriendRequests", fields: [senderId], references: [id])
+  receiver      User      @relation("ReceivedFriendRequests", fields: [receiverId], references: [id])
+}
+
+enum FriendRequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+model Friend {
+  id         Int      @id @default(autoincrement())
+  userId    Int
+  user       User     @relation(name: "userFriendships",fields: [userId], references: [id])
+
+  friendId Int
+  friend    User   @relation(name: "friendFriendships",fields: [friendId], references: [id])
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, friendId])
+  @@unique([friendId, userId])
+}
+
+model Post {
+  id          Int    @id @default(autoincrement())
+  authorId Int
+  content String
+  author      User   @relation(fields: [authorId], references: [id])
+  reactions           PostReaction[]
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @default(now())
+}
+
+model PostReaction {
+  id                  Int      @id @default(autoincrement())
+  postId              Int
+  userId              Int
+  reaction            Reaction @default(LOVE)
+  post                Post     @relation(fields: [postId], references: [id])
+  user                User     @relation(fields: [userId], references: [id])
+
+  @@unique([postId, userId])
+}
+
+enum Reaction {
+  LOVE
+  FIRE
+  ROCKET
+  SHOCKED
+}
+
+model Story {
+  id        Int      @id @default(autoincrement())
+  creatorId  Int
+  content   String   
+  createdAt DateTime @default(now())
+  creator    User     @relation(fields: [creatorId], references: [id])
+  viewers   StoryViewer[]
+}
+
+model StoryViewer {
+  storyId Int
+  userId  Int
+  viewedAt DateTime @default(now())
+
+  story   Story @relation(fields: [storyId], references: [id])
+  user    User  @relation(fields: [userId], references: [id])
+
+  @@id([storyId, userId])
+  @@unique([storyId, userId])
 }
