@@ -7,6 +7,7 @@ import { Chats } from "../components/chat/chats";
 import { SidebarLoader } from "../components/home/sidebar-loader";
 import { useTimeout } from "usehooks-ts";
 import { useState } from "react";
+import { Stories } from "../components/story/stories";
 
 export const Route = createLazyFileRoute("/")({
     component: Index,
@@ -29,6 +30,7 @@ function Index() {
                         </div>
                     </div>
                     <div className="col-span-2 px-2 md:px-0">
+                        <Stories />
                         <Posts />
                     </div>
                     <div className="hidden lg:block">

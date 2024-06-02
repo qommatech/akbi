@@ -2,6 +2,7 @@ import {
     ArrowRightEndOnRectangleIcon,
     CogIcon,
 } from "@heroicons/react/24/outline";
+import { Link } from "@tanstack/react-router";
 
 export const Navbar = () => {
     return (
@@ -17,9 +18,9 @@ export const Navbar = () => {
                     <button className="bg-gray-200 rounded-full">
                         <CogIcon className="w-6 h-6 m-2 stroke-2 text-slate-400" />
                     </button>
-                    <button className="bg-gray-200 rounded-full">
+                    <Link to="/logout" className="bg-gray-200 rounded-full">
                         <ArrowRightEndOnRectangleIcon className="w-6 h-6 m-2 stroke-2 text-slate-400" />
-                    </button>
+                    </Link>
                 </div>
             </div>
         </div>
