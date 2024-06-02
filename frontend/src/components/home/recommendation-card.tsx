@@ -1,21 +1,21 @@
 export const RecommendationCard = () => {
     return (
-        <div className="p-4 border border-gray-200 rounded-xl bg-white mb-2">
-            <div className="flex gap-2 items-center">
+        <div className="p-4 mb-2 bg-white border border-gray-200 rounded-xl">
+            <div className="flex items-center gap-2">
                 <img
                     src="https://github.com/shadcn.png"
                     alt="@gvstang"
-                    className="rounded-full h-12"
+                    className="h-12 rounded-full"
                 />
-                <div className="flex flex-col gap-2 w-full">
-                    <span className="font-semibold text-sm">
+                <div className="flex flex-col w-full gap-2">
+                    <span className="text-sm font-semibold">
                         Riyandi Imran Nugraha
                     </span>
-                    <div className="flex text-xs text-gray-600 justify-between">
+                    <div className="flex justify-between text-xs text-gray-600">
                         <span>@rayaakun</span>
-                        <span className="text-blue-500 font-semibold">
+                        <button className="font-semibold text-blue-500">
                             Add Friend
-                        </span>
+                        </button>
                     </div>
                 </div>
             </div>

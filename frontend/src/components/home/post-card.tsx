@@ -11,12 +11,12 @@ export const PostCard = ({ name, username, time, content }: PostCardProps) => {
     const [isTruncated, setIsTruncated] = useState(true);
 
     return (
-        <div className="p-4 border border-gray-200 rounded-xl bg-white">
-            <div className="flex gap-2 items-center">
+        <div className="p-4 bg-white border border-gray-200 rounded-xl">
+            <div className="flex items-center gap-2">
                 <img
                     src="https://github.com/shadcn.png"
                     alt="@gvstang"
-                    className="rounded-full h-12"
+                    className="h-12 rounded-full"
                 />
                 <div className="flex flex-col">
                     <span className="font-semibold">{name}</span>
@@ -27,14 +27,14 @@ export const PostCard = ({ name, username, time, content }: PostCardProps) => {
                     </div>
                 </div>
             </div>
-            <div className="mt-2 text-sm  max-h-52 overflow-clip">
+            <div className="mt-2 text-sm max-h-52 overflow-clip">
                 <div className="flex">
                     <div className={isTruncated ? "truncate" : ""}>
                         {content}
                     </div>
                     {isTruncated && (
                         <button
-                            className="block text-blue-500 text-nowrap"
+                            className="block text-blue-500 text-nowrap hover:underline"
                             onClick={() => {
                                 setIsTruncated(false);
                             }}

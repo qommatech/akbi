@@ -3,6 +3,7 @@ import { Sidebar } from "../components/home/sidebar";
 import { Navbar } from "../components/home/navbar";
 import { Posts } from "../components/home/posts";
 import { Recommendations } from "../components/home/recommendations";
+import { Chats } from "../components/chat/chats";
 
 export const Route = createLazyFileRoute("/")({
     component: Index,
@@ -12,8 +13,8 @@ function Index() {
     return (
         <>
             <Navbar />
-            <div className="w-screen flex justify-center py-4">
-                <div className="w-3/4 grid grid-cols-4 gap-x-4">
+            <div className="flex justify-center w-screen py-4">
+                <div className="grid w-3/4 grid-cols-4 gap-x-4">
                     <div>
                         <Sidebar />
                     </div>
@@ -25,6 +26,7 @@ function Index() {
                     </div>
                 </div>
             </div>
+            <Chats />
         </>
     );
 }
