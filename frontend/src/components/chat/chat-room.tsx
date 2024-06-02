@@ -47,19 +47,25 @@ export const ChatRoom = ({ id, name, messages, onClose }: ChatRoomProps) => {
                 <h4>{name}</h4>
                 <div className="flex gap-2">
                     <motion.div
+                        className={cn(
+                            "rounded-full",
+                            isShow ? "hover:bg-blue-800" : "hover:bg-gray-100"
+                        )}
                         initial={{
                             rotate: isShow ? 180 : 0,
                         }}
                         animate={{
                             rotate: isShow ? 180 : 0,
                         }}
-                        whileHover={{
-                            rotate: 180,
-                        }}
                     >
                         <ChevronDownIcon className="w-4" />
                     </motion.div>
-                    <button className="rounded-full hover:bg-blue-100">
+                    <button
+                        className={cn(
+                            "rounded-full",
+                            isShow ? "hover:bg-blue-800" : "hover:bg-gray-100"
+                        )}
+                    >
                         <XMarkIcon
                             className="w-4"
                             onClick={(e) => {

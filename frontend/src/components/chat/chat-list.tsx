@@ -35,6 +35,10 @@ export const ChatList = () => {
             >
                 <h4>Friends</h4>
                 <motion.div
+                    className={cn(
+                        "rounded-full",
+                        isShow ? "hover:bg-blue-800" : "hover:bg-gray-100"
+                    )}
                     initial={{
                         rotate: isShow ? 180 : 0,
                     }}
