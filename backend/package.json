@@ -4,15 +4,20 @@
     "dev": "bun run --hot src/index.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.588.0",
+    "@hono/zod-validator": "^0.2.2",
     "@prisma/client": "^5.14.0",
     "bcrypt": "^5.1.1",
     "bcryptjs": "^2.4.3",
     "dotenv": "^16.4.5",
+    "fs": "^0.0.1-security",
     "hono": "^4.4.2",
     "jsonwebtoken": "^9.0.2",
     "mysql2": "^3.10.0",
     "prisma": "^5.14.0",
-    "ws": "^8.17.0"
+    "ws": "^8.17.0",
+    "zod": "^3.23.8",
+    "zod-form-data": "^2.0.2"
   },
   "devDependencies": {
     "@types/bun": "latest"

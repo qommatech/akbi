@@ -7,14 +7,12 @@ import type { JwtVariables } from "hono/jwt";
 
 import { websocketHandler, connectedClients } from "./websocket";
 
-import { createBunWebSocket } from "hono/bun";
-
 import { authRouter } from "./routes/authRoutes";
 import { friendRouter } from "./routes/friendRoutes";
+import { userRouter } from "./routes/userRoutes";
+import { Server } from "ws";
 
 require("dotenv").config();
-
-const { upgradeWebSocket, websocket } = createBunWebSocket();
 
 type Variables = JwtVariables;
 
@@ -35,6 +33,7 @@ api.use(
 );
 
 api.route("/friend", friendRouter);
+api.route("/user", userRouter);
 
 const route = app.get("/", (c) => {
   return c.json({ message: "Hello, This is AKBI endpoint" });
@@ -51,7 +50,7 @@ app.onError((err, c) => {
 
 // Websocket
 const server = Bun.serve(websocketHandler());
-console.log(`Listening on ${server.hostname}:${server.port}`);
+console.log(`Websocket Listening on ${server.hostname}:${server.port}`);
 
 // Ensure server instance is available globally if needed
 globalThis.serverInstance = server;

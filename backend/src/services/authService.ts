@@ -49,18 +49,23 @@ export const AuthService = {
     }
   },
 
-  login: async (username: string, password: string): Promise<string | null> => {
+  login: async (username: string, password: string): Promise<any | null> => {
+    console.log("test");
     const user = await UserRepository.findByUsernameAndPassword(
       username,
       password
     );
+    console.log(user);
     if (user !== null) {
+      console.log("ada");
       return await sign(
         {
           id: user.id,
           username: user.username,
           name: user.name,
           email: user.email,
+          totalPost: user.posts.length,
+          totalFriend: user.userFriends.length,
           exp: Math.floor(Date.now() / 1000) + 60 * 60,
         },
         secretKey as string
