@@ -1,8 +1,7 @@
 import { cn } from "../../utils/cn";
 
 export type ChatRoomCardProps = {
-    type: 1 | 2;
-    id: number;
+    type: number;
     content: string;
     name?: string;
 };
