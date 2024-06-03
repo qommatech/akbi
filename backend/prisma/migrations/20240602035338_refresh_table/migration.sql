@@ -1,5 +1,5 @@
 -- AlterTable
-ALTER TABLE `message` MODIFY `senderId` INTEGER NULL,
+ALTER TABLE `Message` MODIFY `senderId` INTEGER NULL,
     MODIFY `receiverId` INTEGER NULL,
     MODIFY `content` VARCHAR(191) NULL;
 
