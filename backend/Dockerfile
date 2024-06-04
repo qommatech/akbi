@@ -35,4 +35,6 @@ COPY --from=prerelease /usr/src/app/package.json .
 EXPOSE 3000/tcp
 EXPOSE 4000/tcp
 
+RUN bunx prisma generate
+
 ENTRYPOINT [ "bun", "run", "src/index.ts" ]
