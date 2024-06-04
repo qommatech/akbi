@@ -12,7 +12,5 @@ COPY . .
 
 RUN bun run build
 
-EXPOSE 3000/tcp
-RUN bun install -g serve
-
-ENTRYPOINT [ "serve", "dist" ]
+FROM nginx
+COPY --from=prerelease /usr/src/app/dist /usr/share/nginx/html
