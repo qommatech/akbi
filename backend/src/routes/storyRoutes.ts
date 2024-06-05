@@ -66,4 +66,13 @@ storyRouter.delete("/:id", async (c: Context) => {
   }
 });
 
+storyRouter.post("/reply/:id", async (c: Context) => {
+  const result = await storyService.replyStory(c);
+  if ("message" in result) {
+    return c.json(result, 200);
+  } else {
+    return c.json({ error: result.error }, 400);
+  }
+});
+
 export { storyRouter };

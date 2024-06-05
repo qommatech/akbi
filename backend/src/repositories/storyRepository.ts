@@ -162,4 +162,20 @@ export const StoryRepository = {
       where: { id: storyId, creatorId: userId },
     });
   },
+
+  replyStory: async (
+    storyId: number,
+    receiverId: number,
+    userId: number,
+    content: string
+  ) => {
+    return await prisma.message.create({
+      data: {
+        senderId: userId,
+        receiverId: receiverId,
+        content: content,
+        storyId: storyId,
+      },
+    });
+  },
 };

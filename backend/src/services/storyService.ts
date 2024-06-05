@@ -28,6 +28,19 @@ const uploadStorySchema = z.object({
     }),
 });
 
+const replyStorySchema = z.object({
+  receiverId: z
+    .number({
+      required_error: "Receiver is required",
+      invalid_type_error: "Receiver must be a number",
+    })
+    .positive(),
+  content: z.string({
+    required_error: "Content is required",
+    invalid_type_error: "Content must be a string",
+  }),
+});
+
 // Validate video duration function
 const validateVideoDuration = async (fileBuffer: Buffer): Promise<boolean> => {
   try {
@@ -161,6 +174,32 @@ export const storyService = {
       return { message: "Successfully delete story" };
     } catch (error) {
       console.log("Error deleting stories", error);
+      throw error;
+    }
+  },
+
+  replyStory: async (
+    c: Context
+  ): Promise<{ message: string | null } | { error: string | null }> => {
+    const validation = replyStorySchema.safeParse(await c.req.json());
+
+    if (!validation.success) {
+      console.log(validation.data);
+      return { error: `Invalid input : ${validation.error.flatten()}` };
+    }
+
+    const payload = c.get("jwtPayload");
+    const userId = payload.id;
+
+    const storyId = parseInt(c.req.param("id"), 10);
+
+    const { receiverId, content } = validation.data;
+
+    try {
+      await StoryRepository.replyStory(storyId, userId, receiverId, content);
+      return { message: "Successful reply story" };
+    } catch (error) {
+      console.log("Error sending reply : " + error);
       throw error;
     }
   },
