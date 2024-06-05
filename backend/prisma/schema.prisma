@@ -35,8 +35,6 @@ model User {
   sentFriendRequests    FriendRequest[] @relation("SentFriendRequests")
   receivedFriendRequests FriendRequest[] @relation("ReceivedFriendRequests")
 
-  storyReplies StoryReply[] @relation("UserReplies")
-
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
 }
@@ -47,12 +45,11 @@ model Message {
   receiverId Int? 
   content   String?
   createdAt DateTime @default(now())
-  parentId  Int? // For replies to messages
+  storyId   Int? 
 
   sender     User?     @relation("SenderUser",fields: [senderId], references: [id], onDelete: Cascade)
   receiver   User?     @relation("ReceiverUser",fields: [receiverId], references: [id], onDelete: Cascade)
-  parent     Message?  @relation("ParentMessage", fields: [parentId], references: [id], onDelete: Cascade)
-  replies    Message[] @relation("ParentMessage")
+  story      Story?    @relation("StoryReplies", fields: [storyId], references: [id], onDelete: Cascade)
 }
 
 model FriendRequest {
@@ -120,18 +117,7 @@ model Story {
   createdAt DateTime @default(now())
   creator    User     @relation(fields: [creatorId], references: [id], onDelete: Cascade)
   viewers   StoryViewer[]
-  replies   StoryReply[]
-}
-
-model StoryReply {
-  id        Int      @id @default(autoincrement())
-  storyId   Int
-  userId    Int
-  content   String
-  createdAt DateTime @default(now())
-
-  story     Story    @relation(fields: [storyId], references: [id], onDelete: Cascade)
-  user      User     @relation(name: "UserReplies", fields: [userId], references: [id], onDelete: Cascade)
+  replies   Message[] @relation("StoryReplies")
 }
 
 model StoryViewer {
