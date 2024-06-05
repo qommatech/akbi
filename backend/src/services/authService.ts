@@ -1,5 +1,6 @@
 // src/services/authService.ts
 import { decode, sign, verify } from "hono/jwt";
+import { User } from "@prisma/client";
 import { hash } from "bcryptjs";
 import { UserRepository } from "../repositories/userRepository";
 
@@ -50,14 +51,11 @@ export const AuthService = {
   },
 
   login: async (username: string, password: string): Promise<any | null> => {
-    console.log("test");
-    const user = await UserRepository.findByUsernameAndPassword(
+    const user: User | null = await UserRepository.findByUsernameAndPassword(
       username,
       password
     );
-    console.log(user);
     if (user !== null) {
-      console.log("ada");
       return await sign(
         {
           id: user.id,

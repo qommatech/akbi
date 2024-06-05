@@ -16,7 +16,6 @@ datasource db {
 model User {
   id        Int      @id @default(autoincrement())
   profilePictureUrl String?
-  storyUrl String?
   email  String   @unique
   name String
   username  String   @unique
@@ -36,6 +35,8 @@ model User {
   sentFriendRequests    FriendRequest[] @relation("SentFriendRequests")
   receivedFriendRequests FriendRequest[] @relation("ReceivedFriendRequests")
 
+  storyReplies StoryReply[] @relation("UserReplies")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
 }
@@ -46,9 +47,12 @@ model Message {
   receiverId Int? 
   content   String?
   createdAt DateTime @default(now())
+  parentId  Int? // For replies to messages
 
-  sender     User?     @relation("SenderUser",fields: [senderId], references: [id])
-  receiver   User?     @relation("ReceiverUser",fields: [receiverId], references: [id])
+  sender     User?     @relation("SenderUser",fields: [senderId], references: [id], onDelete: Cascade)
+  receiver   User?     @relation("ReceiverUser",fields: [receiverId], references: [id], onDelete: Cascade)
+  parent     Message?  @relation("ParentMessage", fields: [parentId], references: [id], onDelete: Cascade)
+  replies    Message[] @relation("ParentMessage")
 }
 
 model FriendRequest {
@@ -58,8 +62,8 @@ model FriendRequest {
   status        FriendRequestStatus @default(PENDING)
   createdAt     DateTime  @default(now())
 
-  sender        User      @relation("SentFriendRequests", fields: [senderId], references: [id])
-  receiver      User      @relation("ReceivedFriendRequests", fields: [receiverId], references: [id])
+  sender        User      @relation("SentFriendRequests", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver      User      @relation("ReceivedFriendRequests", fields: [receiverId], references: [id], onDelete: Cascade)
 }
 
 enum FriendRequestStatus {
@@ -71,10 +75,10 @@ enum FriendRequestStatus {
 model Friend {
   id         Int      @id @default(autoincrement())
   userId    Int
-  user       User     @relation(name: "userFriendships",fields: [userId], references: [id])
+  user       User     @relation(name: "userFriendships",fields: [userId], references: [id], onDelete: Cascade)
 
   friendId Int
-  friend    User   @relation(name: "friendFriendships",fields: [friendId], references: [id])
+  friend    User   @relation(name: "friendFriendships",fields: [friendId], references: [id], onDelete: Cascade)
   createdAt  DateTime @default(now())
 
   @@unique([userId, friendId])
@@ -84,8 +88,8 @@ model Friend {
 model Post {
   id          Int    @id @default(autoincrement())
   authorId Int
-  content String
-  author      User   @relation(fields: [authorId], references: [id])
+  content String @db.LongText
+  author      User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
   reactions           PostReaction[]
   createdAt           DateTime @default(now())
   updatedAt           DateTime @default(now())
@@ -96,8 +100,8 @@ model PostReaction {
   postId              Int
   userId              Int
   reaction            Reaction @default(LOVE)
-  post                Post     @relation(fields: [postId], references: [id])
-  user                User     @relation(fields: [userId], references: [id])
+  post                Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([postId, userId])
 }
@@ -114,8 +118,20 @@ model Story {
   creatorId  Int
   content   String   
   createdAt DateTime @default(now())
-  creator    User     @relation(fields: [creatorId], references: [id])
+  creator    User     @relation(fields: [creatorId], references: [id], onDelete: Cascade)
   viewers   StoryViewer[]
+  replies   StoryReply[]
+}
+
+model StoryReply {
+  id        Int      @id @default(autoincrement())
+  storyId   Int
+  userId    Int
+  content   String
+  createdAt DateTime @default(now())
+
+  story     Story    @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  user      User     @relation(name: "UserReplies", fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model StoryViewer {
@@ -123,8 +139,8 @@ model StoryViewer {
   userId  Int
   viewedAt DateTime @default(now())
 
-  story   Story @relation(fields: [storyId], references: [id])
-  user    User  @relation(fields: [userId], references: [id])
+  story   Story @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  user    User  @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([storyId, userId])
   @@unique([storyId, userId])
