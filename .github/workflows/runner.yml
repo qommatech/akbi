@@ -15,4 +15,5 @@ jobs:
         port: ${{ secrets.PORT }}
         command_timeout: 30m
         script: | 
-          echo "Nice Job!!!"
+          cd ~/akbi
+          ls -la
