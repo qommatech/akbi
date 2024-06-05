@@ -19,4 +19,5 @@ jobs:
         command_timeout: 30m
         script: | 
           cd ~/akbi
-          ls -la
+          docker compose down frontend
+          docker compose up -d --build frontend
