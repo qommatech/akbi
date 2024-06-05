@@ -3,6 +3,7 @@ import {
   PutObjectCommand,
   ListBucketsCommand,
   GetObjectCommand,
+  ObjectCannedACL,
 } from "@aws-sdk/client-s3";
 import * as fs from "fs";
 import { s3Client } from "../utils/s3Client";
@@ -14,15 +15,21 @@ class S3Service {
     this.client = client;
   }
 
-  async uploadFile(filePath: Buffer, key: string): Promise<string> {
+  async uploadFile(
+    filePath: Buffer,
+    key: string,
+    isVideo?: boolean,
+    file?: Blob
+  ): Promise<string> {
+    const ContentType = isVideo && file ? file.type : "image/png";
     try {
       // const fileContent = fs.readFileSync(filePath);
       const params = {
         Bucket: "akbi",
         Key: key,
         Body: filePath,
-        ACL: "public-read",
-        ContentType: "image/png",
+        ACL: ObjectCannedACL.public_read,
+        ContentType: ContentType,
       };
       const command = new PutObjectCommand(params);
       const file = await this.client.send(command);

@@ -9,7 +9,7 @@ export const UserRepository = {
     password: string
   ): Promise<User | null> => {
     // Find the user by username
-    const user = await prisma.user.findUnique({
+    const user: User | null = await prisma.user.findUnique({
       where: { username },
       include: {
         userFriends: true,
@@ -34,9 +34,11 @@ export const UserRepository = {
     return prisma.user.findUnique({ where: { email } });
   },
   addUser: async (
-    userData: Omit<User, "id" | "createdAt" | "updatedAt">
+    userData: Partial<Omit<User, "id" | "createdAt" | "updatedAt">>
   ): Promise<User> => {
-    return prisma.user.create({ data: userData });
+    return prisma.user.create({
+      data: userData as Omit<User, "id" | "createdAt" | "updated">,
+    });
   },
 
   updateUser: async (
@@ -51,6 +53,15 @@ export const UserRepository = {
         email,
         name,
         username,
+      },
+    });
+  },
+
+  changeAvatar: async (userId: number, profilePictureUrl: string) => {
+    return prisma.user.update({
+      where: { id: userId },
+      data: {
+        profilePictureUrl: profilePictureUrl,
       },
     });
   },

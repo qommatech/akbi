@@ -64,6 +64,7 @@ userRouter.put("/profile-picture", async (c) => {
   }
   const payload = c.get("jwtPayload");
   const username = payload.username;
+  const userId = payload.id;
 
   const { file } = validation.data;
   const arrBuffer = await file.arrayBuffer();
@@ -71,9 +72,15 @@ userRouter.put("/profile-picture", async (c) => {
 
   const filename = `avatar/${username}.png`;
 
-  const s3Handler = await s3Service.uploadFile(buffer, filename);
+  const profilePictureUrl = await s3Service.uploadFile(buffer, filename);
 
-  return c.text(s3Handler);
+  const result = await userService.changeAvatar(userId, profilePictureUrl);
+
+  if ("error" in result) {
+    return c.json({ error: result.error }, 400);
+  }
+
+  return c.json(result, 200);
 });
 
 userRouter.get("/:otherUserId", async (c) => {

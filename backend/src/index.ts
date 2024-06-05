@@ -10,7 +10,7 @@ import { websocketHandler, connectedClients } from "./websocket";
 import { authRouter } from "./routes/authRoutes";
 import { friendRouter } from "./routes/friendRoutes";
 import { userRouter } from "./routes/userRoutes";
-import { Server } from "ws";
+import { storyRouter } from "./routes/storyRoutes";
 
 require("dotenv").config();
 
@@ -34,6 +34,7 @@ api.use(
 
 api.route("/friend", friendRouter);
 api.route("/user", userRouter);
+api.route("/story", storyRouter);
 
 const route = app.get("/", (c) => {
   return c.json({ message: "Hello, This is AKBI endpoint" });
