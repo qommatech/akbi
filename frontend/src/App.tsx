@@ -5,6 +5,7 @@ import { RouteType } from "@akbi/backend/src";
 const client = hc<RouteType>("http://localhost:3000");
 
 function App() {
+    // Update Frontend
     const [message, setMessage] = useState<string | undefined>();
 
     useEffect(() => {
