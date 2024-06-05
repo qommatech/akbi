@@ -12,7 +12,7 @@ export const LoginForm = () => {
                     to="/"
                     className="text-xl font-semibold text-blue-500 pointer-events-auto"
                 >
-                    AKBI. Bro
+                    AKBI.
                 </Link>
             </div>
             <div className="mb-4">
