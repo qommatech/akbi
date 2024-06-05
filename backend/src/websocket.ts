@@ -68,6 +68,6 @@ export const websocketHandler = () => {
         console.log("WebSocket connection closed", code, reason);
       },
     },
-    port: 3000,
+    port: 4000,
   };
 };

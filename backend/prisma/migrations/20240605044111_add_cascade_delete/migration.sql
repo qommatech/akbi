@@ -5,40 +5,40 @@
 
 */
 -- DropForeignKey
-ALTER TABLE `friend` DROP FOREIGN KEY `Friend_friendId_fkey`;
+ALTER TABLE `Friend` DROP FOREIGN KEY `Friend_friendId_fkey`;
 
 -- DropForeignKey
-ALTER TABLE `friend` DROP FOREIGN KEY `Friend_userId_fkey`;
+ALTER TABLE `Friend` DROP FOREIGN KEY `Friend_userId_fkey`;
 
 -- DropForeignKey
-ALTER TABLE `friendrequest` DROP FOREIGN KEY `FriendRequest_receiverId_fkey`;
+ALTER TABLE `FriendRequest` DROP FOREIGN KEY `FriendRequest_receiverId_fkey`;
 
 -- DropForeignKey
-ALTER TABLE `friendrequest` DROP FOREIGN KEY `FriendRequest_senderId_fkey`;
+ALTER TABLE `FriendRequest` DROP FOREIGN KEY `FriendRequest_senderId_fkey`;
 
 -- DropForeignKey
-ALTER TABLE `message` DROP FOREIGN KEY `Message_receiverId_fkey`;
+ALTER TABLE `Message` DROP FOREIGN KEY `Message_receiverId_fkey`;
 
 -- DropForeignKey
-ALTER TABLE `message` DROP FOREIGN KEY `Message_senderId_fkey`;
+ALTER TABLE `Message` DROP FOREIGN KEY `Message_senderId_fkey`;
 
 -- DropForeignKey
-ALTER TABLE `post` DROP FOREIGN KEY `Post_authorId_fkey`;
+ALTER TABLE `Post` DROP FOREIGN KEY `Post_authorId_fkey`;
 
 -- DropForeignKey
-ALTER TABLE `postreaction` DROP FOREIGN KEY `PostReaction_postId_fkey`;
+ALTER TABLE `PostReaction` DROP FOREIGN KEY `PostReaction_postId_fkey`;
 
 -- DropForeignKey
-ALTER TABLE `postreaction` DROP FOREIGN KEY `PostReaction_userId_fkey`;
+ALTER TABLE `PostReaction` DROP FOREIGN KEY `PostReaction_userId_fkey`;
 
 -- DropForeignKey
-ALTER TABLE `story` DROP FOREIGN KEY `Story_creatorId_fkey`;
+ALTER TABLE `Story` DROP FOREIGN KEY `Story_creatorId_fkey`;
 
 -- DropForeignKey
-ALTER TABLE `storyviewer` DROP FOREIGN KEY `StoryViewer_storyId_fkey`;
+ALTER TABLE `StoryViewer` DROP FOREIGN KEY `StoryViewer_storyId_fkey`;
 
 -- DropForeignKey
-ALTER TABLE `storyviewer` DROP FOREIGN KEY `StoryViewer_userId_fkey`;
+ALTER TABLE `StoryViewer` DROP FOREIGN KEY `StoryViewer_userId_fkey`;
 
 -- AlterTable
 ALTER TABLE `user` DROP COLUMN `storyUrl`;
@@ -65,7 +65,7 @@ ALTER TABLE `Friend` ADD CONSTRAINT `Friend_friendId_fkey` FOREIGN KEY (`friendI
 ALTER TABLE `Post` ADD CONSTRAINT `Post_authorId_fkey` FOREIGN KEY (`authorId`) REFERENCES `User`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `PostReaction` ADD CONSTRAINT `PostReaction_postId_fkey` FOREIGN KEY (`postId`) REFERENCES `Post`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `PostReaction` ADD CONSTRAINT `PostReaction_postId_fkey` FOREIGN KEY (`postId`) REFERENCES `PostPostid`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `PostReaction` ADD CONSTRAINT `PostReaction_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
