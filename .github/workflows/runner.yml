@@ -1,12 +1,15 @@
-name: runner
+name: Deploy
 run-name: ${{ github.actor }} is running actions 🚀
-on: [push]
+on:
+  push:
+    paths:
+      - frontend/**
 jobs:
   run_example_job:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-    - name: print out example job
+    - name: Deploy Akbi Frontend
       uses: appleboy/ssh-action@v0.1.10
       with:
         host: ${{ secrets.HOST }}
