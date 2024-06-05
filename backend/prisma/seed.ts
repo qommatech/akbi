@@ -25,18 +25,18 @@ async function main() {
   });
 
   // Create friendship between Abi and Akmal
-  //   await prisma.friend.createMany({
-  //     data: [
-  //       {
-  //         userId: abi.id,
-  //         friendId: akmal.id,
-  //       },
-  //       {
-  //         userId: akmal.id,
-  //         friendId: abi.id,
-  //       },
-  //     ],
-  //   });
+  await prisma.friend.createMany({
+    data: [
+      {
+        userId: abi.id,
+        friendId: akmal.id,
+      },
+      {
+        userId: akmal.id,
+        friendId: abi.id,
+      },
+    ],
+  });
 }
 main()
   .then(async () => {

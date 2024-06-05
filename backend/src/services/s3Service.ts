@@ -2,10 +2,8 @@ import {
   S3,
   PutObjectCommand,
   ListBucketsCommand,
-  GetObjectCommand,
   ObjectCannedACL,
 } from "@aws-sdk/client-s3";
-import * as fs from "fs";
 import { s3Client } from "../utils/s3Client";
 
 class S3Service {
@@ -49,31 +47,6 @@ class S3Service {
       console.log("Buckets:", response.Buckets);
     } catch (error) {
       console.error("Error listing buckets:", error);
-      throw error;
-    }
-  }
-
-  async getObject(
-    bucketName: string,
-    key: string,
-    downloadPath: string
-  ): Promise<void> {
-    try {
-      const params = {
-        Bucket: bucketName,
-        Key: key,
-      };
-      const command = new GetObjectCommand(params);
-      const response = await this.client.send(command);
-
-      const writeStream = fs.createWriteStream(downloadPath);
-      response.Body.pipe(writeStream);
-
-      writeStream.on("close", () => {
-        console.log("Successfully downloaded file to", downloadPath);
-      });
-    } catch (error) {
-      console.error("Error getting object:", error);
       throw error;
     }
   }

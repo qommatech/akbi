@@ -2,8 +2,7 @@ import { Hono } from "hono";
 import { userService } from "../services/userService";
 import s3Service from "../services/s3Service";
 import { z } from "zod";
-import * as fs from "fs";
-import { hash, hashSync } from "bcryptjs";
+import { Context } from "hono";
 
 const userRouter = new Hono();
 
@@ -81,6 +80,19 @@ userRouter.put("/profile-picture", async (c) => {
   }
 
   return c.json(result, 200);
+});
+
+userRouter.get("/", async (c: Context) => {
+  const result = await userService.getOneUser(c);
+
+  if (result) {
+    return c.json({
+      message: "Successful fetch user data",
+      user: result,
+    });
+  }
+
+  return c.json({ error: "Error fetching data user" }, 400);
 });
 
 userRouter.get("/:otherUserId", async (c) => {

@@ -6,7 +6,7 @@ import { PassThrough } from "stream";
 import s3Service from "./s3Service";
 import { Story } from "@prisma/client";
 
-const MAX_FILE_SIZE = 5000000;
+const MAX_FILE_SIZE = 10000000;
 const ACCEPTED_FILE_TYPES = [
   "image/jpeg",
   "image/jpg",
@@ -90,6 +90,7 @@ export const storyService = {
   uploadStory: async (
     c: Context
   ): Promise<{ message?: string; error?: string } | undefined> => {
+    console.log(await c.req.parseBody());
     const validation = uploadStorySchema.safeParse(await c.req.parseBody());
 
     if (!validation.success) {

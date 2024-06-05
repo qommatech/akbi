@@ -167,11 +167,17 @@ export const FriendRepository = {
   },
 
   createFriendship: async (userId: number, friendId: number) => {
-    return await prisma.friend.create({
-      data: {
-        userId,
-        friendId,
-      },
+    return await prisma.friend.createMany({
+      data: [
+        {
+          userId,
+          friendId,
+        },
+        {
+          friendId,
+          userId,
+        },
+      ],
     });
   },
 

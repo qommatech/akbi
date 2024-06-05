@@ -41,6 +41,52 @@ export const UserRepository = {
     });
   },
 
+  getOneUser: async (userId: number) => {
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+    return await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        email: true,
+        username: true,
+        name: true,
+        profilePictureUrl: true,
+
+        friendUserFriends: {
+          select: {
+            friend: {
+              select: {
+                id: true,
+                username: true,
+                email: true,
+                profilePictureUrl: true,
+              },
+            },
+          },
+        },
+
+        posts: {
+          select: {
+            id: true,
+            content: true,
+            createdAt: true,
+          },
+        },
+
+        stories: {
+          where: {
+            createdAt: {
+              gte: twentyFourHoursAgo,
+            },
+          },
+          orderBy: {
+            createdAt: "asc",
+          },
+        },
+      },
+    });
+  },
+
   updateUser: async (
     userId: number,
     email: string,

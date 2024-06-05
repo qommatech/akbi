@@ -18,10 +18,25 @@ postRouter.get("/", async (c: Context) => {
   }
 });
 
+postRouter.get("/:id", async (c: Context) => {
+  const result = await postService.getOnePost(c);
+  if ("post" in result) {
+    return c.json(
+      {
+        message: "Successfully fetch post data",
+        post: result.post,
+      },
+      200
+    );
+  } else {
+    return c.json({ error: result.error }, 400);
+  }
+});
+
 postRouter.post("/", async (c: Context) => {
   const result = await postService.createPost(c);
   if ("message" in result) {
-    return c.json(result.message, 200);
+    return c.json({ message: result.message }, 200);
   } else {
     return c.json({ error: result.error }, 400);
   }

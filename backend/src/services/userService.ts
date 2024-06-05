@@ -1,5 +1,7 @@
+import { Context } from "hono";
 import { FriendRepository } from "../repositories/friendRepository";
 import { UserRepository } from "../repositories/userRepository";
+import { User, Post, Story } from "@prisma/client";
 
 export const userService = {
   getOneUserWithPosts: async (
@@ -15,6 +17,18 @@ export const userService = {
     } catch (error) {
       console.error("Error fetching user and posts: ", error);
       return { error: "Error fetching user and posts" };
+    }
+  },
+
+  getOneUser: async (c: Context) => {
+    const payload = c.get("jwtPayload");
+    const userId = payload.id;
+
+    try {
+      return await UserRepository.getOneUser(userId);
+    } catch (error) {
+      console.log("Error fetching user: ", error);
+      throw error;
     }
   },
 

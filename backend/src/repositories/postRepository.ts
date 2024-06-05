@@ -1,4 +1,4 @@
-import { PrismaClient, User, Post } from "@prisma/client";
+import { PrismaClient, User, Post, Reaction } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -54,6 +54,49 @@ export const PostRepository = {
       console.log("Error fetching posts: ", error);
       return { error: "Error fetching posts" };
     }
+  },
+
+  getOnePost: async (userId: number, postId: number) => {
+    const post = await prisma.post.findUnique({
+      where: {
+        id: postId,
+      },
+      select: {
+        id: true,
+        content: true,
+        createdAt: true,
+        authorId: true,
+      },
+    });
+
+    if (!post || post.authorId !== userId) {
+      // Handle post not found or user not authorized to view the post
+      return null;
+    }
+
+    const reactionsCount = await prisma.postReaction.groupBy({
+      by: ["reaction"],
+      where: {
+        postId: postId,
+      },
+      _count: {
+        reaction: true,
+      },
+    });
+
+    const reactionsCountDict: Partial<Record<Reaction, number>> = {};
+
+    // Transform the result into a dictionary
+    reactionsCount.forEach(({ reaction, _count }) => {
+      reactionsCountDict[reaction] = _count.reaction;
+    });
+
+    return {
+      id: post.id,
+      content: post.content,
+      createdAt: post.createdAt,
+      reactions: reactionsCountDict,
+    };
   },
 
   createPost: async (userId: number, content: string) => {
