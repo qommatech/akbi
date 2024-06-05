@@ -11,12 +11,23 @@ import { authRouter } from "./routes/authRoutes";
 import { friendRouter } from "./routes/friendRoutes";
 import { userRouter } from "./routes/userRoutes";
 import { storyRouter } from "./routes/storyRoutes";
+import { postRouter } from "./routes/postRoutes";
 
 require("dotenv").config();
 
 type Variables = JwtVariables;
 
 const app = new Hono();
+
+// Websocket
+const server = Bun.serve(websocketHandler());
+console.log(`Websocket Listening on ${server.hostname}:${server.port}`);
+
+// Ensure server instance is available globally if needed
+globalThis.serverInstance = server;
+
+// Export connected clients to be accessible globally
+globalThis.connectedClients = connectedClients;
 
 app.use("*", cors());
 app.use(poweredBy());
@@ -35,6 +46,7 @@ api.use(
 api.route("/friend", friendRouter);
 api.route("/user", userRouter);
 api.route("/story", storyRouter);
+api.route("/post", postRouter);
 
 const route = app.get("/", (c) => {
   return c.json({ message: "Hello, This is AKBI endpoint" });
@@ -49,17 +61,8 @@ app.onError((err, c) => {
   return c.json({ error: err.message }, 500);
 });
 
-// Websocket
-const server = Bun.serve(websocketHandler());
-console.log(`Websocket Listening on ${server.hostname}:${server.port}`);
+app.route("/", api);
 
-// Ensure server instance is available globally if needed
-globalThis.serverInstance = server;
-
-// Export connected clients to be accessible globally
-globalThis.connectedClients = connectedClients;
-
-app.route("/", api); // Handle /book
-
+// export default app;
 export default app;
 export type RouteType = typeof route;

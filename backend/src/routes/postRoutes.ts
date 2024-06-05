@@ -1,16 +1,30 @@
-import { Hono } from "hono";
-import { jwt } from "hono/jwt";
-import type { JwtVariables } from "hono/jwt";
+import { Context, Hono } from "hono";
+import { postService } from "../services/postService";
 
-type Variables = JwtVariables;
+const postRouter = new Hono();
 
-const postRouter = new Hono<{ Variables: Variables }>();
+postRouter.get("/", async (c: Context) => {
+  const result = await postService.index(c);
+  if ("posts" in result) {
+    return c.json(
+      {
+        message: "Successfully fetch all posts data",
+        posts: result.posts,
+      },
+      200
+    );
+  } else {
+    return c.json({ error: result.error }, 400);
+  }
+});
 
-postRouter.use(
-  "/post/*",
-  jwt({
-    secret: process.env.SECRET_KEY as string,
-  })
-);
+postRouter.post("/", async (c: Context) => {
+  const result = await postService.createPost(c);
+  if ("message" in result) {
+    return c.json(result.message, 200);
+  } else {
+    return c.json({ error: result.error }, 400);
+  }
+});
 
-postRouter.get("/post", async (c) => {});
+export { postRouter };

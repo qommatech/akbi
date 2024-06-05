@@ -8,15 +8,12 @@ export const connectedClients = new Map<string, ServerWebSocket<any>>();
 export const websocketHandler = () => {
   return {
     fetch(req: any, server: any) {
-      const url = new URL(req.url);
-      if (url.pathname === "/") {
-        const token = req.headers.get("token"); // Implement this function based on your logic
-        const { payload } = decode(token);
-        const userId = payload.id;
-        const otherUserId = parseInt(req.headers.get("otherUserId"));
-        const success = server.upgrade(req, { data: { userId, otherUserId } });
-        if (success) return undefined;
-      }
+      const token = req.headers.get("token"); // Implement this function based on your logic
+      const { payload } = decode(token);
+      const userId = payload.id;
+      const otherUserId = parseInt(req.headers.get("otherUserId"));
+      const success = server.upgrade(req, { data: { userId, otherUserId } });
+      if (success) return undefined;
 
       return new Response("WebSocket upgrade error", { status: 400 });
     },
@@ -68,6 +65,6 @@ export const websocketHandler = () => {
         console.log("WebSocket connection closed", code, reason);
       },
     },
-    port: 3000,
+    port: 4000,
   };
 };
