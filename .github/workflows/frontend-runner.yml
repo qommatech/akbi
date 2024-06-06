@@ -1,23 +1,25 @@
 name: Front-End Action
 run-name: ${{ github.actor }} is running actions 🚀
 on:
-  push:
-    paths:
-      - frontend/**
+    push:
+        branches:
+            - main
+        paths:
+            - frontend/**
 jobs:
-  deploy_on_server:
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-    - name: Deploy frontend on server 🚀
-      uses: appleboy/ssh-action@v0.1.10
-      with:
-        host: ${{ secrets.HOST }}
-        username: ${{ secrets.USER }}
-        key: ${{ secrets.KEY }}
-        port: ${{ secrets.PORT }}
-        command_timeout: 30m
-        script: | 
-          cd ~/akbi
-          docker compose down frontend
-          docker compose up -d --build frontend
+    deploy_on_server:
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+        steps:
+            - name: Deploy frontend on server 🚀
+              uses: appleboy/ssh-action@v0.1.10
+              with:
+                  host: ${{ secrets.HOST }}
+                  username: ${{ secrets.USER }}
+                  key: ${{ secrets.KEY }}
+                  port: ${{ secrets.PORT }}
+                  command_timeout: 30m
+                  script: |
+                      cd ~/akbi
+                      docker compose down frontend
+                      docker compose up -d --build frontend
