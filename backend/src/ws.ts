@@ -15,7 +15,7 @@ export const connectedClients = new Map<
 export const websocket: WebSocketHandler<ServerData & WebSocketData> = {
     open(ws) {
         ws.send(
-            JSON.stringify({ message: "Websocket connection established" })
+            JSON.stringify({ message: "Websocket connection established 🚀" })
         );
 
         connectedClients.set(ws.data.userId.toString(), ws);
