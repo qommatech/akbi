@@ -1,8 +1,8 @@
 import { ServerWebSocket, WebSocketHandler } from "bun";
 import { saveMessage } from "./utils/saveMessage";
+import { ServerData } from ".";
 
 export interface WebSocketData {
-    authToken: string;
     userId: number;
     otherUserId: number;
 }
@@ -12,7 +12,7 @@ export const connectedClients = new Map<
     ServerWebSocket<WebSocketData>
 >();
 
-export const websocket: WebSocketHandler<WebSocketData> = {
+export const websocket: WebSocketHandler<ServerData & WebSocketData> = {
     open(ws) {
         ws.send(
             JSON.stringify({ message: "Websocket connection established" })

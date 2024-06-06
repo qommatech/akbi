@@ -45,8 +45,11 @@ const app = new Hono()
         return c.json({ error: err.message }, 500);
     });
 
-// Websocket
-const server = Bun.serve<WebSocketData>({
+export interface ServerData {
+    authToken: string;
+}
+
+const server = Bun.serve<ServerData>({
     fetch: (req, server) => {
         const token = req.headers.get("token");
 
