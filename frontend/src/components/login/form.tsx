@@ -16,7 +16,7 @@ export const LoginForm = () => {
                 </Link>
             </div>
             <div className="mb-4">
-                <h1 className="text-2xl">Welcome!</h1>
+                <h1 className="text-2xl">Hallo!</h1>
             </div>
             <form
                 className="flex flex-col w-3/4 gap-y-2"
