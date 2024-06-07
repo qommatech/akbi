@@ -34,16 +34,18 @@ export const websocket: WebSocketHandler<ServerData & WebSocketData> = {
     },
     async message(ws, message) {
         try {
+            const { userId, otherUserId } = ws.data;
             const parsedMessage = JSON.parse(message as string);
-            const { senderId, receiverId, content } = parsedMessage as {
-                senderId: number;
-                receiverId: number;
+            const { content } = parsedMessage as {
                 content: string;
             };
+            console.log(`${userId} send message to ${otherUserId}: ${content}`);
 
-            await saveMessage(senderId, receiverId, content);
+            await saveMessage(userId, otherUserId, content);
 
-            const recipientSocket = connectedClients.get(receiverId.toString());
+            const recipientSocket = connectedClients.get(
+                otherUserId.toString()
+            );
 
             if (recipientSocket) {
                 recipientSocket.send(

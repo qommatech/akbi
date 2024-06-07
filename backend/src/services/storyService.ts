@@ -4,6 +4,8 @@ import { z } from "zod";
 import { PassThrough } from "stream";
 import s3Service from "./s3Service";
 import { Story } from "@prisma/client";
+import { connectedClients } from "../ws";
+import getVideoDurationInSeconds from "get-video-duration";
 
 const MAX_FILE_SIZE = 10000000;
 const ACCEPTED_FILE_TYPES = [
@@ -202,6 +204,19 @@ export const storyService = {
                 receiverId,
                 content
             );
+
+            const story = await StoryRepository.getOneStory(storyId, userId);
+            const recipientSocket = connectedClients.get(receiverId.toString());
+
+            if (recipientSocket) {
+                recipientSocket.send(
+                    JSON.stringify({
+                        senderId: userId,
+                        content,
+                        story: story.story?.content,
+                    })
+                );
+            }
             return { message: "Successful reply story" };
         } catch (error) {
             console.log("Error sending reply : " + error);
