@@ -1,6 +1,7 @@
 import { ServerWebSocket, WebSocketHandler } from "bun";
 import { saveMessage } from "./utils/saveMessage";
 import { ServerData } from ".";
+import { fetchMessagesBetweenUsers } from "./utils/fetchMessagesBetweenUsers";
 
 export interface WebSocketData {
     userId: number;
@@ -13,12 +14,23 @@ export const connectedClients = new Map<
 >();
 
 export const websocket: WebSocketHandler<ServerData & WebSocketData> = {
-    open(ws) {
+    async open(ws) {
         ws.send(
             JSON.stringify({ message: "Websocket connection established 🚀" })
         );
 
         connectedClients.set(ws.data.userId.toString(), ws);
+
+        try {
+            const previousMessages = await fetchMessagesBetweenUsers(
+                ws.data.userId,
+                ws.data.otherUserId
+            );
+            ws.send(JSON.stringify(previousMessages));
+        } catch (err) {
+            ws.send("Error fetching previous messages 😔");
+            console.error(`Error fetching previous messages: ${err} 😔`);
+        }
     },
     async message(ws, message) {
         try {
