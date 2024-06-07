@@ -88,8 +88,23 @@ model Post {
   content String @db.LongText
   author      User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
   reactions           PostReaction[]
+  postAsset   PostAsset[]
   createdAt           DateTime @default(now())
   updatedAt           DateTime @default(now())
+}
+
+model PostAsset {
+  id Int @id @default(autoincrement())
+  postId Int
+  url String
+  type AssetType @default(Image)
+
+  post Post @reaction(fields: [postId], references: [id], onDelete: Cascade)
+}
+
+enum AssetType {
+  Video
+  Image
 }
 
 model PostReaction {
