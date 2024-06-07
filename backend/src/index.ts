@@ -2,67 +2,85 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { poweredBy } from "hono/powered-by";
 import { logger } from "hono/logger";
-import { jwt } from "hono/jwt";
+import { decode, jwt } from "hono/jwt";
 import type { JwtVariables } from "hono/jwt";
-
-import { websocketHandler, connectedClients } from "./websocket";
 
 import { authRouter } from "./routes/authRoutes";
 import { friendRouter } from "./routes/friendRoutes";
 import { userRouter } from "./routes/userRoutes";
 import { storyRouter } from "./routes/storyRoutes";
 import { postRouter } from "./routes/postRoutes";
-
-require("dotenv").config();
+import { JWTPayload } from "hono/utils/jwt/types";
+import { websocket, connectedClients, WebSocketData } from "./ws";
 
 type Variables = JwtVariables;
 
-const app = new Hono();
+const api = new Hono<{ Variables: Variables }>()
+    .get("/", async (c) => {
+        return c.json("Welcome to the API");
+    })
+    .basePath("/api")
+    .use(
+        "*",
+        jwt({
+            secret: process.env.SECRET_KEY as string,
+        })
+    )
+    .route("/friend", friendRouter)
+    .route("/user", userRouter)
+    .route("/story", storyRouter)
+    .route("/post", postRouter);
 
-// Websocket
-const server = Bun.serve(websocketHandler());
-console.log(`Websocket Listening on ${server.hostname}:${server.port}`);
+const app = new Hono()
+    .use("*", cors())
+    .use(poweredBy())
+    .use(logger())
+    .route("/auth", authRouter)
+    .route("/", api)
+    .notFound((c) => {
+        return c.json({ error: "Not Found" }, 404);
+    })
+    .onError((err, c) => {
+        console.error(`${err}`);
+        return c.json({ error: err.message }, 500);
+    });
 
-// Ensure server instance is available globally if needed
+export interface ServerData {
+    authToken: string;
+}
+
+const server = Bun.serve<ServerData>({
+    fetch: (req, server) => {
+        const token = req.headers.get("token");
+
+        if (!token) {
+            return app.fetch(req);
+        }
+
+        const { payload } = decode(token);
+
+        const { id } = payload as JWTPayload & {
+            id: number;
+        };
+        const otherUserId = parseInt(req.headers.get("otherUserId") as string);
+
+        if (
+            server.upgrade(req, {
+                data: {
+                    authToken: token,
+                    userId: id,
+                    otherUserId: otherUserId,
+                },
+            })
+        ) {
+            return;
+        }
+
+        return app.fetch(req);
+    },
+    websocket: websocket,
+});
+console.log(`Server listening on ${server.hostname}:${server.port}`);
+
 globalThis.serverInstance = server;
-
-// Export connected clients to be accessible globally
 globalThis.connectedClients = connectedClients;
-
-app.use("*", cors());
-app.use(poweredBy());
-app.use(logger());
-
-app.route("/auth", authRouter);
-
-const api = new Hono<{ Variables: Variables }>().basePath("/api");
-api.use(
-  "*",
-  jwt({
-    secret: process.env.SECRET_KEY as string,
-  })
-);
-
-api.route("/friend", friendRouter);
-api.route("/user", userRouter);
-api.route("/story", storyRouter);
-api.route("/post", postRouter);
-
-const route = app.get("/", (c) => {
-  return c.json({ message: "Hello, This is AKBI endpoint" });
-});
-
-app.notFound((c) => {
-  return c.json({ error: "Not Found" }, 404);
-});
-
-app.onError((err, c) => {
-  console.error(`${err}`);
-  return c.json({ error: err.message }, 500);
-});
-
-app.route("/", api);
-
-// export default app;
-export default app;
-export type RouteType = typeof route;
