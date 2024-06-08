@@ -1,4 +1,8 @@
-import { Navigate, createLazyFileRoute } from "@tanstack/react-router";
+import {
+    Navigate,
+    createLazyFileRoute,
+    useNavigate,
+} from "@tanstack/react-router";
 import { LogoutBanner } from "../components/logout/banner";
 import { useState } from "react";
 import { useTimeout } from "usehooks-ts";
@@ -9,8 +13,13 @@ export const Route = createLazyFileRoute("/logout")({
 
 function Logout() {
     const [isLoading, setIsLoading] = useState(true);
+    const navigate = useNavigate();
 
-    useTimeout(() => setIsLoading(false), 5000);
+    useTimeout(() => {
+        window.localStorage.clear();
+        navigate({ to: "/login" });
+        setIsLoading(false);
+    }, 5000);
 
     return isLoading ? (
         <div className="flex items-center justify-center w-screen h-screen">

@@ -1,9 +1,38 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useRef } from "react";
+import { useLogin } from "../../services/auth/login";
 
 export const LoginForm = () => {
-    const [isSubmit, setIssubmit] = useState(false);
+    const usernameRef = useRef(null);
+    const passwordRef = useRef(null);
+
+    const { mutate, isLoading } = useLogin();
+    const navigate = useNavigate();
+
+    const handleSubmit = () => {
+        const username = usernameRef.current.value;
+        const password = passwordRef.current.value;
+
+        mutate(
+            {
+                username,
+                password,
+            },
+            {
+                onSuccess: async (data) => {
+                    if (data.ok) {
+                        const { token } = await data.json();
+                        window.localStorage.setItem("__token_AKBI", token);
+
+                        navigate({
+                            to: "/",
+                        });
+                    }
+                },
+            }
+        );
+    };
 
     return (
         <div className="relative flex flex-col items-center justify-center w-full h-full">
@@ -22,11 +51,12 @@ export const LoginForm = () => {
                 className="flex flex-col w-3/4 gap-y-2"
                 onSubmit={(e) => {
                     e.preventDefault();
-                    setIssubmit(true);
+                    handleSubmit();
                 }}
                 method="POST"
             >
                 <input
+                    ref={usernameRef}
                     type="text"
                     name="username"
                     id="username"
@@ -35,6 +65,7 @@ export const LoginForm = () => {
                     required
                 />
                 <input
+                    ref={passwordRef}
                     type="password"
                     name="password"
                     id="password"
@@ -48,7 +79,7 @@ export const LoginForm = () => {
                 >
                     <motion.span
                         initial={{ opacity: 1 }}
-                        animate={{ opacity: isSubmit ? 0 : 1 }}
+                        animate={{ opacity: isLoading ? 0 : 1 }}
                         transition={{
                             duration: 0,
                         }}
@@ -61,7 +92,7 @@ export const LoginForm = () => {
                             opacity: 0,
                         }}
                         animate={{
-                            opacity: isSubmit ? 1 : 0,
+                            opacity: isLoading ? 1 : 0,
                         }}
                     >
                         {[...Array(3)].map((_, i) => (
