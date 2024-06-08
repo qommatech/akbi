@@ -1,19 +1,19 @@
 import { Hono } from "hono";
 import { FriendService } from "../services/friendService";
 import { z } from "zod";
+import { Variables } from "hono/types";
+import { AppVariables } from "../index";
 
-export const friendRouter = new Hono()
+export const friendRouter = new Hono<{ Variables: AppVariables }>()
     .get("/", async (c) => {
         const payload = c.get("jwtPayload");
         const userId = payload.id;
         const result = await FriendService.index(userId);
+
         if ("friends" in result) {
-            return c.json(
-                {
-                    message: "Successfully fetch all friends data",
-                    friends: result.friends,
-                },
-                200
+            return c.var.response(
+                result.friends,
+                "Successfully fetch all friends data 😘"
             );
         } else {
             return c.json({ error: result.error }, 400);

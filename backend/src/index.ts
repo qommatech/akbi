@@ -12,12 +12,33 @@ import { storyRouter } from "./routes/storyRoutes";
 import { postRouter } from "./routes/postRoutes";
 import { JWTPayload } from "hono/utils/jwt/types";
 import { websocket, connectedClients, WebSocketData } from "./ws";
+import { createMiddleware } from "hono/factory";
+import { JSONValue } from "hono/utils/types";
 
-type Variables = JwtVariables;
+type ResponseVariables = {
+    response: (data: any, message: string) => Response;
+};
 
-const api = new Hono<{ Variables: Variables }>()
+export type AppVariables = JwtVariables & ResponseVariables;
+
+const response = createMiddleware<{
+    Variables: ResponseVariables;
+}>(async (c, next) => {
+    c.set("response", (data, message) => {
+        return c.json(
+            {
+                data,
+                message,
+            },
+            200
+        );
+    });
+    await next();
+});
+
+const api = new Hono<{ Variables: AppVariables }>()
     .get("/", async (c) => {
-        return c.json("Welcome to the API");
+        return c.json("Welcome to the API 🚀");
     })
     .basePath("/api")
     .use(
@@ -26,6 +47,7 @@ const api = new Hono<{ Variables: Variables }>()
             secret: process.env.SECRET_KEY as string,
         })
     )
+    .use(response)
     .route("/friend", friendRouter)
     .route("/user", userRouter)
     .route("/story", storyRouter)
