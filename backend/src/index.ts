@@ -32,7 +32,7 @@ const api = new Hono<{ Variables: Variables }>()
     .route("/post", postRouter);
 
 const app = new Hono()
-    .use("*", cors())
+    .use(cors())
     .use(poweredBy())
     .use(logger())
     .route("/auth", authRouter)
@@ -84,3 +84,5 @@ console.log(`Server listening on ${server.hostname}:${server.port}`);
 
 globalThis.serverInstance = server;
 globalThis.connectedClients = connectedClients;
+
+export type AppType = typeof app;
