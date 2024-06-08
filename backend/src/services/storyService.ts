@@ -5,6 +5,7 @@ import { PassThrough } from "stream";
 import s3Service from "./s3Service";
 import { Story } from "@prisma/client";
 import getVideoDurationInSeconds from "get-video-duration";
+import { connectedClients } from "../ws";
 
 const MAX_FILE_SIZE = 10000000;
 const ACCEPTED_FILE_TYPES = [

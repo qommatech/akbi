@@ -1,134 +1,142 @@
 import { Hono } from "hono";
 import { userService } from "../services/userService";
-import s3Service from "../services/s3Service";
 import { z } from "zod";
 import { Context } from "hono";
+import { zValidator } from "@hono/zod-validator";
+import s3Service from "../services/s3Service";
+import { updateUserSchema } from "../utils/schemas";
 
-const userRouter = new Hono();
+export const userRouter = new Hono()
 
-userRouter.put("/", async (c) => {
-  // Schema for update User
-  const updateUserSchema = z.object({
-    email: z.string().email(),
-    name: z.string().max(50),
-    username: z.string().max(10),
-  });
+    .put(
+        "/",
+        zValidator("json", updateUserSchema, (result, c) => {
+            if (!result.success) {
+                return c.json(
+                    {
+                        error: result.error.flatten().fieldErrors,
+                    },
+                    400
+                );
+            }
+        }),
+        async (c) => {
+            const { email, name, username } = c.req.valid("json");
 
-  // Validate otherUserId using the schema
-  const validation = updateUserSchema.safeParse(await c.req.json());
-  if (!validation.success) {
-    return c.json(
-      { error: "Invalid input", details: validation.error.flatten() },
-      400
-    );
-  }
+            const payload = c.get("jwtPayload");
+            const userId = payload.id;
 
-  const { email, name, username } = validation.data;
+            const result = await userService.updateUser(
+                userId,
+                email,
+                name,
+                username
+            );
 
-  const payload = c.get("jwtPayload");
-  const userId = payload.id;
+            if ("error" in result) {
+                return c.json({ error: result.error }, 400);
+            }
 
-  const result = await userService.updateUser(userId, email, name, username);
+            return c.json({ message: "Successfull update user" }, 201);
+        }
+    )
 
-  if ("error" in result) {
-    return c.json({ error: result.error }, 400);
-  }
+    .put("/profile-picture", async (c) => {
+        const MAX_FILE_SIZE = 5000000;
+        const ACCEPTED_IMAGE_TYPES = [
+            "image/jpeg",
+            "image/jpg",
+            "image/png",
+            "image/webp",
+        ];
+        // Schema for Get One Friends
+        const uploadProfilePictureSchema = z.object({
+            file: z.instanceof(File),
+        });
+        // Validate otherUserId using the schema
+        const validation = uploadProfilePictureSchema.safeParse(
+            await c.req.parseBody()
+        );
 
-  return c.json({ message: "Successfull update user" }, 201);
-});
+        if (!validation.success) {
+            console.log(validation.data);
+            return c.json(
+                { error: "Invalid input", details: validation.error.flatten() },
+                400
+            );
+        }
+        const payload = c.get("jwtPayload");
+        const username = payload.username;
+        const userId = payload.id;
 
-userRouter.put("/profile-picture", async (c) => {
-  const MAX_FILE_SIZE = 5000000;
-  const ACCEPTED_IMAGE_TYPES = [
-    "image/jpeg",
-    "image/jpg",
-    "image/png",
-    "image/webp",
-  ];
-  // Schema for Get One Friends
-  const uploadProfilePictureSchema = z.object({
-    file: z.instanceof(File),
-  });
-  // Validate otherUserId using the schema
-  const validation = uploadProfilePictureSchema.safeParse(
-    await c.req.parseBody()
-  );
+        const { file } = validation.data;
+        const arrBuffer = await file.arrayBuffer();
+        const buffer = Buffer.from(arrBuffer);
 
-  if (!validation.success) {
-    console.log(validation.data);
-    return c.json(
-      { error: "Invalid input", details: validation.error.flatten() },
-      400
-    );
-  }
-  const payload = c.get("jwtPayload");
-  const username = payload.username;
-  const userId = payload.id;
+        const filename = `avatar/${username}.png`;
 
-  const { file } = validation.data;
-  const arrBuffer = await file.arrayBuffer();
-  const buffer = Buffer.from(arrBuffer);
+        const profilePictureUrl = await s3Service.uploadFile(buffer, filename);
 
-  const filename = `avatar/${username}.png`;
+        const result = await userService.changeAvatar(
+            userId,
+            profilePictureUrl
+        );
 
-  const profilePictureUrl = await s3Service.uploadFile(buffer, filename);
+        if ("error" in result) {
+            return c.json({ error: result.error }, 400);
+        }
 
-  const result = await userService.changeAvatar(userId, profilePictureUrl);
+        return c.json(result, 200);
+    })
 
-  if ("error" in result) {
-    return c.json({ error: result.error }, 400);
-  }
+    .get("/", async (c: Context) => {
+        const result = await userService.getOneUser(c);
 
-  return c.json(result, 200);
-});
+        if (result) {
+            return c.json({
+                message: "Successful fetch user data",
+                user: result,
+            });
+        }
 
-userRouter.get("/", async (c: Context) => {
-  const result = await userService.getOneUser(c);
+        return c.json({ error: "Error fetching data user" }, 400);
+    })
 
-  if (result) {
-    return c.json({
-      message: "Successful fetch user data",
-      user: result,
+    .get("/:otherUserId", async (c) => {
+        // Schema for Get One Friends
+        const oneFriendsSchema = z.object({
+            otherUserId: z.string().regex(/^\d+$/).transform(Number),
+        });
+        const payload = c.get("jwtPayload");
+        const userId = payload.id;
+        // Validate otherUserId using the schema
+        const validation = oneFriendsSchema.safeParse({
+            otherUserId: c.req.param("otherUserId"),
+        });
+
+        if (!validation.success) {
+            return c.json(
+                { error: "Invalid input", details: validation.error.flatten() },
+                400
+            );
+        }
+
+        const { otherUserId } = validation.data;
+
+        const result = await userService.getOneUserWithPosts(
+            userId,
+            otherUserId
+        );
+
+        if ("error" in result) {
+            return c.json({ error: result.error }, 400);
+        }
+
+        return c.json(
+            {
+                message: "Successfully fetched user and posts",
+                user: result,
+            },
+            200
+        );
     });
-  }
-
-  return c.json({ error: "Error fetching data user" }, 400);
-});
-
-userRouter.get("/:otherUserId", async (c) => {
-  // Schema for Get One Friends
-  const oneFriendsSchema = z.object({
-    otherUserId: z.string().regex(/^\d+$/).transform(Number),
-  });
-  const payload = c.get("jwtPayload");
-  const userId = payload.id;
-  // Validate otherUserId using the schema
-  const validation = oneFriendsSchema.safeParse({
-    otherUserId: c.req.param("otherUserId"),
-  });
-
-  if (!validation.success) {
-    return c.json(
-      { error: "Invalid input", details: validation.error.flatten() },
-      400
-    );
-  }
-
-  const { otherUserId } = validation.data;
-
-  const result = await userService.getOneUserWithPosts(userId, otherUserId);
-
-  if ("error" in result) {
-    return c.json({ error: result.error }, 400);
-  }
-
-  return c.json(
-    {
-      message: "Successfully fetched user and posts",
-      user: result,
-    },
-    200
-  );
-});
-
-export { userRouter };

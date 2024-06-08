@@ -85,3 +85,5 @@ console.log(`Server listening on ${server.hostname}:${server.port}`);
 
 globalThis.serverInstance = server;
 globalThis.connectedClients = connectedClients;
+
+export type AppType = typeof app;
