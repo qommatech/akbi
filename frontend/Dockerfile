@@ -12,5 +12,5 @@ COPY . .
 
 RUN bun run build
 
-FROM nginx
-COPY --from=prerelease /usr/src/app/dist /usr/share/nginx/html
+EXPOSE 80
+ENTRYPOINT [ "bun", "run", "preview", "--host", "--port", "80"]
