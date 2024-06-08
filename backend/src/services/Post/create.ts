@@ -6,12 +6,11 @@ import { PostRepository } from "../../repositories/postRepository";
 export const create = async (
   c: Context
 ): Promise<{ message: string | null } | { error: string | null }> => {
-  // console.log(await c.req.formData());
-  const formData = await c.req.formData(); // Assuming parseBody parses into FormData
+  const formData = await c.req.formData();
 
   const data = {
     content: formData.get("content"),
-    files: formData.getAll("files"), // Assuming 'files' is the key for multiple files
+    files: formData.getAll("files"),
   };
   // console.log(data);
   const validation = uploadPostSchema.safeParse(data);

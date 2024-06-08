@@ -2,12 +2,11 @@ import { Context } from "hono";
 import { z } from "zod";
 import s3Service from "../s3Service";
 import { PostRepository } from "../../repositories/postRepository";
+import { GetOnePostResponse } from "../../interfaces/Post/GetOnePostResponse";
 
 export const update = async (
   c: Context
-): Promise<
-  { message: string | null } | { error: string | null } | undefined
-> => {
+): Promise<{ message: string | null } | { error: string | null }> => {
   const postId = parseInt(c.req.param("id"), 10);
   const payload = c.get("jwtPayload");
   const userId = payload.id;
@@ -31,7 +30,10 @@ export const update = async (
 
   const { content, files } = validation.data;
 
-  const post = await PostRepository.getOnePost(userId, postId);
+  const post: GetOnePostResponse = await PostRepository.getOnePost(
+    userId,
+    postId
+  );
 
   if (post.author.id !== userId) {
     return { error: "Unauthorized" };
@@ -56,7 +58,7 @@ export const update = async (
     return { message: "Successfully updated post" };
   } catch (error) {
     console.log("Error updating post:", error);
-    return { error: "Failed to update post" };
+    throw error;
   }
 };
 

@@ -1,4 +1,5 @@
 import { PrismaClient, Post, Reaction } from "@prisma/client";
+import { GetOnePostResponse } from "../interfaces/Post/GetOnePostResponse";
 
 // Define a type for the reaction counts
 type ReactionCounts = {
@@ -86,7 +87,10 @@ export const PostRepository = {
     }
   },
 
-  getOnePost: async (userId: number, postId: number) => {
+  getOnePost: async (
+    userId: number,
+    postId: number
+  ): Promise<GetOnePostResponse> => {
     const post = await prisma.post.findUnique({
       where: {
         id: postId,
@@ -121,8 +125,7 @@ export const PostRepository = {
     });
 
     if (!post) {
-      // Handle post not found or user not authorized to view the post
-      return [];
+      throw new Error("Post not found or user not authorized to view the post");
     }
 
     // Initialize reactionCounts with an empty object
