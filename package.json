@@ -1,8 +1,9 @@
 {
-  "name": "akbi",
-  "private": true,
-  "workspaces": [
-    "frontend",
-    "backend"
-  ]
+    "name": "akbi",
+    "license": "MIT",
+    "private": true,
+    "workspaces": [
+        "frontend",
+        "backend"
+    ]
 }
