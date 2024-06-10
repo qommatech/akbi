@@ -1,5 +1,6 @@
 import { PrismaClient, Post, Reaction } from "@prisma/client";
 import { GetOnePostResponse } from "../interfaces/Post/GetOnePostResponse";
+import { GetAllPostsResponse } from "../interfaces/Post/GetAllPostsResponse";
 
 // Define a type for the reaction counts
 type ReactionCounts = {
@@ -9,9 +10,7 @@ type ReactionCounts = {
 const prisma = new PrismaClient();
 
 export const PostRepository = {
-  getAllPosts: async (
-    userId: number
-  ): Promise<{ posts: Post[] } | { error: string }> => {
+  getAllPosts: async (userId: number): Promise<GetAllPostsResponse[]> => {
     const friends = await prisma.friend.findMany({
       where: {
         OR: [{ userId: userId }, { friendId: userId }],
@@ -80,10 +79,10 @@ export const PostRepository = {
         };
       });
 
-      return { posts: sanitizedPosts };
+      return sanitizedPosts;
     } catch (error) {
       console.log("Error fetching posts: ", error);
-      return { error: "Error fetching posts" };
+      throw new Error("Error fetching posts");
     }
   },
 

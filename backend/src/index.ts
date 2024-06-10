@@ -12,13 +12,34 @@ import { storyRouter } from "./routes/storyRoutes";
 import { postRouter } from "./routes/postRoutes";
 import { JWTPayload } from "hono/utils/jwt/types";
 import { websocket, connectedClients, WebSocketData } from "./ws";
-import { authRoute } from "./routes/auth";
+import { createMiddleware } from "hono/factory";
+import { HTTPException } from "hono/http-exception";
+import { JSONValue } from "hono/utils/types";
 
-type Variables = JwtVariables;
+type ResponseVariables = {
+  response: (data: any, message: string) => Response;
+};
 
-const api = new Hono<{ Variables: Variables }>()
+export type AppVariables = JwtVariables & ResponseVariables;
+
+const response = createMiddleware<{
+  Variables: ResponseVariables;
+}>(async (c, next) => {
+  c.set("response", (message, data) => {
+    return c.json(
+      {
+        message,
+        data,
+      },
+      200
+    );
+  });
+  await next();
+});
+
+const api = new Hono<{ Variables: AppVariables }>()
   .get("/", async (c) => {
-    return c.json("Welcome to the API");
+    return c.json("Welcome to the API 🚀");
   })
   .basePath("/api")
   .use(
@@ -27,6 +48,7 @@ const api = new Hono<{ Variables: Variables }>()
       secret: process.env.SECRET_KEY as string,
     })
   )
+  .use(response)
   .route("/friend", friendRouter)
   .route("/user", userRouter)
   .route("/story", storyRouter)
@@ -35,13 +57,17 @@ const api = new Hono<{ Variables: Variables }>()
 const app = new Hono()
   .use("*", cors())
   .use(logger())
-  .route("/authroute", authRoute)
+  .route("/authroute", authRouter)
   .route("/auth", authRouter)
   .route("/", api)
   .notFound((c) => {
     return c.json({ error: "Not Found" }, 404);
   })
   .onError((err, c) => {
+    if (err instanceof HTTPException) {
+      console.log(err);
+      return c.json({ error: err.message }, err.status);
+    }
     console.error(`${err}`);
     return c.json({ error: err.message }, 500);
   });

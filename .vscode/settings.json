@@ -1,2 +1,5 @@
 {
+  "workbench.editor.customLabels.patterns": {
+    "**/src/**/*.ts": "${dirname} - ${filename}"
+  }
 }

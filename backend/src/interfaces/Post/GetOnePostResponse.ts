@@ -5,7 +5,6 @@ type Reaction = "LOVE" | "FIRE" | "ROCKET" | "SHOCKED";
 
 // Define the interface for a user
 interface User {
-  id: number;
   username: string;
   profilePictureUrl: string | null;
 }

@@ -4,54 +4,82 @@ import {
   FriendRequestStatus,
   FriendRequest,
 } from "@prisma/client";
+import { GetAllFriendsResponse } from "../interfaces/User/Friend/GetAllFriendsResponse";
+import { GetOneFriendResponse } from "../interfaces/User/Friend/GetOneFriendResponse";
+import { HTTPException } from "hono/http-exception";
+import { getAllFriendRequestsResponse } from "../interfaces/User/Friend/GetAllFriendRequestsResponse";
 
 const prisma = new PrismaClient();
 
 export const FriendRepository = {
-  getAllFriends: async (userId: number): Promise<any[]> => {
-    const userWithFriends = await prisma.user.findUniqueOrThrow({
+  getAllFriends: async (userId: number): Promise<GetAllFriendsResponse[]> => {
+    const friendsWithLatestMessages = await prisma.user.findUnique({
       where: { id: userId },
-      select: {
-        name: true,
-        email: true,
-        username: true,
-
+      include: {
         userFriends: {
-          include: {
-            friend: true,
-          },
-        },
-        friendUserFriends: {
-          include: {
-            user: true,
+          select: {
+            friend: {
+              select: {
+                id: true,
+                email: true,
+                name: true,
+                username: true,
+                receivedMessage: {
+                  where: {
+                    senderId: userId,
+                  },
+                  orderBy: {
+                    createdAt: "desc",
+                  },
+                  take: 1,
+                  select: {
+                    id: true,
+                    content: true,
+                    createdAt: true,
+                  },
+                },
+                sendedMesssage: {
+                  where: {
+                    receiverId: userId,
+                  },
+                  orderBy: {
+                    createdAt: "desc",
+                  },
+                  take: 1,
+                  select: {
+                    id: true,
+                    content: true,
+                    createdAt: true,
+                  },
+                },
+              },
+            },
           },
         },
       },
     });
 
-    if (!userWithFriends) {
+    if (!friendsWithLatestMessages) {
+      // Handle the case where the user is not found
       throw new Error("User not found");
     }
 
-    const friends = [
-      ...userWithFriends.userFriends.map((friendship) => friendship.friend),
-      ...userWithFriends.friendUserFriends.map((friendship) => friendship.user),
-    ];
+    const friendsWithLatestMessagesResponse =
+      friendsWithLatestMessages.userFriends.map((friendship) => {
+        const friend = friendship.friend;
+        const messages = [
+          ...friend.sendedMesssage,
+          ...friend.receivedMessage,
+        ].filter((message) => message !== null);
 
-    // Fetch latest message for each friend
-    const friendsWithLatestMessages = await Promise.all(
-      friends.map(async (friend) => {
-        const latestMessage = await prisma.message.findFirst({
-          where: {
-            OR: [
-              { senderId: userId, receiverId: friend.id },
-              { senderId: friend.id, receiverId: userId },
-            ],
-          },
-          orderBy: {
-            createdAt: "desc",
-          },
-        });
+        // Find the latest message among sent and received messages
+        const latestMessage = messages.reduce(
+          (latest, message) =>
+            !latest || (message && message.createdAt > latest.createdAt)
+              ? message
+              : latest,
+          null as { id: number; createdAt: Date; content: string | null } | null
+        );
 
         return {
           id: friend.id,
@@ -66,29 +94,25 @@ export const FriendRepository = {
               }
             : null,
         };
-      })
-    );
-
-    return friendsWithLatestMessages;
+      });
+    return friendsWithLatestMessagesResponse;
   },
 
   getOneUserWithPosts: async (
     userId: number,
     otherUserId: number
-  ): Promise<any> => {
-    // Fetch the other user
-    const user = await prisma.user.findUnique({
+  ): Promise<GetOneFriendResponse> => {
+    const user = await prisma.user.findUniqueOrThrow({
       where: { id: otherUserId },
       include: {
-        posts: true, // Include posts conditionally
+        posts: true,
       },
     });
 
     if (!user) {
-      return { error: "User not found" };
+      throw new Error("User not found");
     }
 
-    // Check if the users are friends
     const isFriend = await prisma.friend.findFirst({
       where: {
         OR: [
@@ -98,20 +122,19 @@ export const FriendRepository = {
       },
     });
 
-    // Remove sensitive information
     const { password, updatedAt, ...userWithoutPassword } = user;
 
     if (!isFriend) {
-      // If not friends, remove posts
       return { ...userWithoutPassword, posts: [] };
     }
 
-    // If friends, include posts
     return userWithoutPassword;
   },
 
-  sendFriendRequest: async (senderId: number, receiverId: number) => {
-    // Check if a friend request already exists
+  sendFriendRequest: async (
+    senderId: number,
+    receiverId: number
+  ): Promise<FriendRequestStatus> => {
     const existingRequest = await prisma.friendRequest.findFirst({
       where: {
         senderId,
@@ -133,12 +156,14 @@ export const FriendRepository = {
             status: FriendRequestStatus.PENDING,
           },
         });
-        return { friendRequest: updatedRequest };
+        return updatedRequest.status;
       }
-      return { error: "Friend request already exists" };
+      console.log("Friend request already pending");
+      throw new HTTPException(400, {
+        message: "Friend request already pending",
+      });
     }
 
-    // Create a new friend request
     const newRequest = await prisma.friendRequest.create({
       data: {
         senderId,
@@ -147,71 +172,97 @@ export const FriendRepository = {
       },
     });
 
-    return { friendRequest: newRequest };
+    return newRequest.status;
   },
 
-  getFriendRequest: async (userId: number, otherUserId: number) => {
-    return await prisma.friendRequest.findFirst({
-      where: { senderId: otherUserId, receiverId: userId },
+  getFriendRequest: async (senderId: number, receiverId: number) => {
+    const friendRequest = await prisma.friendRequest.findFirst({
+      where: {
+        AND: [
+          { senderId },
+          { receiverId },
+          { status: FriendRequestStatus.PENDING },
+        ],
+      },
     });
+
+    if (!friendRequest) {
+      throw new HTTPException(404, {
+        message: "Friend request not found or already accepted",
+      });
+    }
+
+    return friendRequest;
   },
 
-  updateFriendRequestStatus: async (
-    requestId: number,
-    status: FriendRequestStatus
-  ) => {
-    return await prisma.friendRequest.update({
-      where: { id: requestId },
-      data: { status },
+  AcceptFriendRequest: async (
+    id: number,
+    senderId: number,
+    receiverId: number
+  ): Promise<FriendRequestStatus> => {
+    const friendRequest = await prisma.friendRequest.update({
+      where: {
+        id: id,
+      },
+      data: {
+        status: FriendRequestStatus.ACCEPTED,
+      },
     });
-  },
 
-  createFriendship: async (userId: number, friendId: number) => {
-    return await prisma.friend.createMany({
+    await prisma.friend.createMany({
       data: [
-        {
-          userId,
-          friendId,
-        },
-        {
-          friendId,
-          userId,
-        },
+        { userId: senderId, friendId: receiverId },
+        { userId: receiverId, friendId: senderId },
       ],
     });
+
+    return friendRequest.status;
+  },
+
+  RejectFriendRequest: async (
+    id: number,
+    senderId: number,
+    receiverId: number
+  ): Promise<FriendRequestStatus> => {
+    const friendRequest = await prisma.friendRequest.update({
+      where: {
+        id: id,
+      },
+      data: {
+        status: FriendRequestStatus.REJECTED,
+      },
+    });
+
+    return friendRequest.status;
   },
 
   getAllFriendRequests: async (
     userId: number
-  ): Promise<{ friendRequests: FriendRequest[] }> => {
-    const user = await prisma.user.findUnique({
+  ): Promise<getAllFriendRequestsResponse[]> => {
+    const friendRequests = await prisma.friendRequest.findMany({
       where: {
-        id: userId,
+        receiverId: userId,
       },
-      include: {
-        receivedFriendRequests: {
-          include: {
-            sender: true,
+      select: {
+        id: true,
+        senderId: true,
+        status: true,
+        createdAt: true,
+        sender: {
+          select: {
+            profilePictureUrl: true,
+            email: true,
+            name: true,
+            username: true,
           },
         },
       },
     });
 
-    if (!user) {
-      throw new Error("User not found");
+    if (!friendRequests) {
+      throw new HTTPException(404, { message: "Friend Request Not Found" });
     }
 
-    const sanitizedFriendRequests = user?.receivedFriendRequests.map(
-      (request) => {
-        const { sender, ...requestWithoutSender } = request;
-        const { password, updatedAt, createdAt, ...sanitizedSender } = sender;
-        return {
-          ...requestWithoutSender,
-          sender: sanitizedSender,
-        };
-      }
-    );
-
-    return { friendRequests: sanitizedFriendRequests };
+    return friendRequests;
   },
 };

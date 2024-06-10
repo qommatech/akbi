@@ -10,7 +10,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.588.0",
     "@hono/zod-validator": "^0.2.2",
-    "@prisma/client": "^5.14.0",
+    "@prisma/client": "^5.15.0",
     "@types/fluent-ffmpeg": "^2.1.24",
     "@types/tmp": "^0.2.6",
     "@types/util.promisify": "^1.0.8",
