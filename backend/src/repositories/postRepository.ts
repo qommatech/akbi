@@ -1,6 +1,7 @@
 import { PrismaClient, Post, Reaction } from "@prisma/client";
 import { GetOnePostResponse } from "../interfaces/Post/GetOnePostResponse";
 import { GetAllPostsResponse } from "../interfaces/Post/GetAllPostsResponse";
+import { HTTPException } from "hono/http-exception";
 
 // Define a type for the reaction counts
 type ReactionCounts = {
@@ -10,7 +11,9 @@ type ReactionCounts = {
 const prisma = new PrismaClient();
 
 export const PostRepository = {
-  getAllPosts: async (userId: number): Promise<GetAllPostsResponse[]> => {
+  getAllPosts: async (
+    userId: number
+  ): Promise<{ posts: GetAllPostsResponse[] }> => {
     const friends = await prisma.friend.findMany({
       where: {
         OR: [{ userId: userId }, { friendId: userId }],
@@ -79,7 +82,7 @@ export const PostRepository = {
         };
       });
 
-      return sanitizedPosts;
+      return { posts: sanitizedPosts };
     } catch (error) {
       console.log("Error fetching posts: ", error);
       throw new Error("Error fetching posts");
@@ -124,15 +127,13 @@ export const PostRepository = {
     });
 
     if (!post) {
-      throw new Error("Post not found or user not authorized to view the post");
+      throw new HTTPException(404, { message: "No post found" });
     }
 
-    // Initialize reactionCounts with an empty object
     const reactionCounts: Partial<
       Record<Reaction, { count: number; users: any[] }>
     > = {};
 
-    // Process reactions to build the reactionCounts object
     post.reactions.forEach(({ reaction, user }) => {
       if (!reactionCounts[reaction]) {
         reactionCounts[reaction] = { count: 0, users: [] };

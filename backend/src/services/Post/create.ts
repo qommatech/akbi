@@ -1,31 +1,13 @@
 import { Context } from "hono";
 import s3Service from "../s3Service";
-import { z } from "zod";
 import { PostRepository } from "../../repositories/postRepository";
+import { HTTPException } from "hono/http-exception";
 
 export const create = async (
+  validationData: { content: string; files: File[] | null },
   c: Context
-): Promise<{ message: string | null } | { error: string | null }> => {
-  const formData = await c.req.formData();
-
-  const data = {
-    content: formData.get("content"),
-    files: formData.getAll("files"),
-  };
-  // console.log(data);
-  const validation = uploadPostSchema.safeParse(data);
-
-  if (!validation.success) {
-    const flattenedErrors = validation.error.flatten();
-    const errorMessage = Object.values(flattenedErrors.fieldErrors)
-      .flat()
-      .join(", ");
-    return { error: `Invalid input: ${errorMessage}` };
-  }
-
-  const { content, files } = validation.data;
-
-  console.log({ content, files });
+): Promise<{ message: string | null }> => {
+  const { content, files } = validationData;
 
   const payload = c.get("jwtPayload");
   const userId = payload.id;
@@ -34,8 +16,8 @@ export const create = async (
     const { id: postId } = await PostRepository.createPost(userId, content);
 
     const assetUrls: any[] = [];
-    if (files) {
-      const uploadPromises = Array.from(files).map(async (file) => {
+    if (files && files?.length > 0) {
+      const uploadPromises = Array.from(files).map(async (file: File) => {
         const uploadedAssetUrl = await uploadPost(file, postId);
         assetUrls.push(uploadedAssetUrl);
       });
@@ -48,7 +30,7 @@ export const create = async (
     return { message: "Successfully created post" };
   } catch (error) {
     console.log("Error creating post", error);
-    throw error;
+    throw new HTTPException(500, { message: "Error creating post" });
   }
 };
 
@@ -64,40 +46,8 @@ const uploadPost = async (file: File, postId: number) => {
     return { url, type };
   } catch (error) {
     console.log("Error inserting post asset into S3 :", error);
-    throw error;
+    throw new HTTPException(500, {
+      message: "Error uploading post assets into S3",
+    });
   }
 };
-
-const MAX_FILE_SIZE = 10000000;
-const ACCEPTED_FILE_TYPES = [
-  "image/jpeg",
-  "image/jpg",
-  "image/png",
-  "image/webp",
-  "video/mp4",
-  "video/webm",
-  "video/ogg",
-];
-
-const uploadPostSchema = z.object({
-  content: z
-    .string({
-      message: "Invalid type specified",
-    })
-    .min(1),
-  files: z
-    .array(z.instanceof(File))
-    .optional()
-    .refine(
-      (files) =>
-        !files ||
-        files.every(
-          (file) =>
-            ACCEPTED_FILE_TYPES.includes(file.type) &&
-            file.size <= MAX_FILE_SIZE
-        ),
-      {
-        message: "Invalid file type or size specified",
-      }
-    ),
-});

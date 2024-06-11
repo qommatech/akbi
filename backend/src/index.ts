@@ -65,7 +65,7 @@ const app = new Hono()
   })
   .onError((err, c) => {
     if (err instanceof HTTPException) {
-      console.log(err);
+      console.log(err.message);
       return c.json({ error: err.message }, err.status);
     }
     console.error(`${err}`);

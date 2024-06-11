@@ -3,32 +3,17 @@ import { z } from "zod";
 import s3Service from "../s3Service";
 import { PostRepository } from "../../repositories/postRepository";
 import { GetOnePostResponse } from "../../interfaces/Post/GetOnePostResponse";
+import { HTTPException } from "hono/http-exception";
 
 export const update = async (
+  validationData: { content: string | null; files: File[] | null },
   c: Context
 ): Promise<{ message: string | null } | { error: string | null }> => {
   const postId = parseInt(c.req.param("id"), 10);
   const payload = c.get("jwtPayload");
   const userId = payload.id;
 
-  const formData = await c.req.formData();
-
-  const data = {
-    content: formData.get("content"),
-    files: formData.getAll("files") as File[],
-  };
-  // console.log(data);
-  const validation = updatePostSchema.safeParse(data);
-
-  if (!validation.success) {
-    const flattenedErrors = validation.error.flatten();
-    const errorMessage = Object.values(flattenedErrors.fieldErrors)
-      .flat()
-      .join(", ");
-    return { error: `Invalid input: ${errorMessage}` };
-  }
-
-  const { content, files } = validation.data;
+  const { content, files } = validationData;
 
   const post: GetOnePostResponse = await PostRepository.getOnePost(
     userId,
@@ -58,7 +43,7 @@ export const update = async (
     return { message: "Successfully updated post" };
   } catch (error) {
     console.log("Error updating post:", error);
-    throw error;
+    throw new HTTPException(500, { message: "Error updating post" });
   }
 };
 
@@ -82,44 +67,6 @@ const uploadUpdatedPost = async (files: File[], postId: number) => {
     return uploadResults;
   } catch (error) {
     console.log("Error uploading files:", error);
-    throw error;
+    throw new HTTPException(500, { message: "Error uploading files" });
   }
 };
-
-const MAX_FILE_SIZE = 10000000;
-const ACCEPTED_FILE_TYPES = [
-  "image/jpeg",
-  "image/jpg",
-  "image/png",
-  "image/webp",
-  "video/mp4",
-  "video/webm",
-  "video/ogg",
-];
-
-const updatePostSchema = z.object({
-  content: z
-    .string({
-      message: "Invalid type specified",
-    })
-    .min(1)
-    .nullable(),
-  files: z
-    .array(z.instanceof(File))
-    .max(5, {
-      message: "You can upload up to 5 files",
-    })
-    .refine(
-      (files) =>
-        !files ||
-        files.every(
-          (file) =>
-            ACCEPTED_FILE_TYPES.includes(file.type) &&
-            file.size <= MAX_FILE_SIZE
-        ),
-      {
-        message: "Invalid file type or size specified",
-      }
-    )
-    .nullable(),
-});
